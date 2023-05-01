@@ -175,7 +175,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 {
-    uint32_t er = HAL_CAN_GetError(hcan);
+    // uint32_t er = HAL_CAN_GetError(hcan);
 //    sprintf(trans_str,"ER CAN %lu %08lX", er, er);
 //    HAL_UART_Transmit(&huart1, (uint8_t*)trans_str, strlen(trans_str), 100);
 }
