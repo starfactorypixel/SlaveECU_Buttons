@@ -25,6 +25,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <SerialUtils.h>
+#include <About.h>
+#include <Leds.h>
+#include <CANLogic.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,7 +107,8 @@ SPI_HandleTypeDef hspi2;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 
-UART_HandleTypeDef huart3;
+// На самом деле это huart3, но у нас везде используется huart3.
+UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -157,41 +162,64 @@ void HC595_Write_HC165_Read(){
 }
 
 
-/* 
-	Колбек для приёма данных (для буфера RX_FIFO_0)
-	При приёме любого кадра мы тут же забираем его из почтового ящика с помощью функции HAL_CAN_GetRxMessage(...)
-	ВАЖНО!!!!!!  для приема нужно в MX_CAN_Init() прописать настройки приема
-*/
+
+/// @brief Callback function of CAN receiver.
+/// @param hcan Pointer to the structure that contains CAN configuration.
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 {
-    if(HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
-    {  
-			if(RxData[0] == 0x44){
-				readCAN = 1;
-			}
+    CAN_RxHeaderTypeDef RxHeader;
+    uint8_t RxData[8] = {0};
+
+    if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
+    {
+        CANLib::can_manager.IncomingCANFrame(RxHeader.StdId, RxData, RxHeader.DLC);
+        // LOG("RX: CAN 0x%04lX", RxHeader.StdId);
+    }
+}
+
+/// @brief Callback function for CAN error handler
+/// @param hcan Pointer to the structure that contains CAN configuration.
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
+{
+    uint32_t er = HAL_CAN_GetError(hcan);
+    LOG("CAN ERROR: %lu %08lX", (unsigned long)er, (unsigned long)er);
+}
+
+/// @brief Sends data via CAN bus
+/// @param id CANObject ID
+/// @param data Pointer to the CAN frame data buffer (8 bytes max)
+/// @param length Length of the CAN frame data buffer
+void HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length)
+{
+    CAN_TxHeaderTypeDef TxHeader;
+    uint8_t TxData[8] = {0};
+    uint32_t TxMailbox = 0;
+
+    TxHeader.StdId = id;                   // Standard frame ID (sets to 0 if extended one used)
+    TxHeader.ExtId = 0;                    // Extended frame ID (sets to 0 if standard one used)
+    TxHeader.RTR = CAN_RTR_DATA;           // CAN_RTR_DATA: CAN frame with data will be sent
+                                           // CAN_RTR_REMOTE: remote CAN frame will be sent
+    TxHeader.IDE = CAN_ID_STD;             // CAN_ID_STD: CAN frame with standard ID
+                                           // CAN_ID_EXT: CAN frame with extended ID
+    TxHeader.DLC = length;                 // Data length of the CAN frame
+    TxHeader.TransmitGlobalTime = DISABLE; // Time Triggered Communication Mode
+
+    memcpy(TxData, data, length);
+
+    while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan) == 0)
+    {
+        Leds::ledsObj.SetOn(Leds::ledsObj.LED_RED);
+    }
+    Leds::ledsObj.SetOff(Leds::ledsObj.LED_RED);
+
+    if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+    {
+        LOG("CAN TX ERROR: 0x%04lX", TxHeader.StdId);
     }
 }
 
 
-void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
-{
-    // uint32_t er = HAL_CAN_GetError(hcan);
-//    sprintf(trans_str,"ER CAN %lu %08lX", er, er);
-//    HAL_UART_Transmit(&huart1, (uint8_t*)trans_str, strlen(trans_str), 100);
-}
 
-void HAL_CAN_Send()
-{
-	
-		while(HAL_CAN_GetTxMailboxesFreeLevel(&hcan) == 0);
-
-		if(HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
-		{
-//			HAL_UART_Transmit(&huart1, (uint8_t*)"ER SEND\n", 8, 100);
-		}
-//		HAL_Delay(500);
-}
-/* USER CODE END 0 */
 
 /**
   * @brief  The application entry point.
@@ -291,17 +319,34 @@ int main(void)
 	IO_HIGH(IO_PIN_1,GPIOB);         			// установить лог 1 на выходе
 	IO_INPUT_MODE(IO_PIN_1,GPIOB);				// настроить пин на вход
 
+
+
+
+	About::Setup();
+	Leds::Setup();
+	CANLib::Setup();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	uint8_t cn=0;
-  while (1)
-  {
+
+
+	uint32_t current_time = HAL_GetTick();
+	
+	while (1)
+	{
+        // don't need to update current_time because it is always updated by Loop() functions
+        // current_time = HAL_GetTick();
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+		About::Loop(current_time);
+		Leds::Loop(current_time);
+		CANLib::Loop(current_time);
 		
 		
 		
@@ -337,7 +382,7 @@ int main(void)
 			TxData[5] = 0x30;
 			TxData[6] = ButtonBuf[0];
 			TxData[7] = ButtonBuf[1];
-			HAL_CAN_Send();
+			//HAL_CAN_Send();
 			
 			if(BitIsSet(Button[0], 0)) {
 				LedGreen_OFF;
@@ -639,15 +684,15 @@ static void MX_USART3_UART_Init(void)
   /* USER CODE BEGIN USART3_Init 1 */
 
   /* USER CODE END USART3_Init 1 */
-  huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
-  huart3.Init.WordLength = UART_WORDLENGTH_8B;
-  huart3.Init.StopBits = UART_STOPBITS_1;
-  huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX_RX;
-  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart3) != HAL_OK)
+  huart1.Instance = USART3;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     Error_Handler();
   }
