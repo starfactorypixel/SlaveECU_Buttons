@@ -29,6 +29,7 @@
 #include <About.h>
 #include <Leds.h>
 #include <CANLogic.h>
+#include <ButtonsLeds.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -70,20 +71,6 @@
 #define VIO_CAN_H()      	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);	// установить выход защелка в High
 #define VIO_CAN_L()       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);	// установить выход защелка в Low
 
-#define CLK_H()        	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_SET);	// установить выход SCK(clock) в High
-#define CLK_L()         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_13, GPIO_PIN_RESET);	// установить выход SCK(clock) в Low
-#define SDO_595_H()        	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);	// установить выход SDO(Data) в High
-#define SDO_595_L()     	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);	// установить выход SDO(Data) в Low
-#define CE_H()      		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);	// установить выход защелка CE(SH_CP) в High
-#define CE_L()       		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);	// установить выход защелка CE(SH_CP) в Low
-
-#define OE_595_H()      		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);	// установить выход защелка в High
-#define OE_595_L()       		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);	// установить выход защелка в Low
-#define SRCLR_595_H()      	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_SET);	// установить выход защелка в High
-#define SRCLR_595_L()       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, GPIO_PIN_RESET);	// установить выход защелка в Low
-
-#define SH_LD_165_H()      	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_SET);	// установить выход защелка в High
-#define SH_LD_165_L()       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_10, GPIO_PIN_RESET);	// установить выход защелка в Low
 
 #define ClearBit(reg, bit)       reg &= (~(1<<(bit)))   //пример: ClearBit(PORTB, 1); //сбросить 1-й бит PORTB
 #define SetBit(reg, bit)          reg |= (1<<(bit))     //пример: SetBit(PORTB, 3); //установить 3-й бит PORTB
@@ -153,6 +140,7 @@ static void MX_SPI2_Init(void);
 /* USER CODE BEGIN 0 */
 
 
+/*
 void HC595_Write_HC165_Read(){
 	CE_L();        		// Write enadle
 	SH_LD_165_L();		// Reset HC165
@@ -160,6 +148,7 @@ void HC595_Write_HC165_Read(){
 	HAL_SPI_TransmitReceive(&hspi2, (uint8_t*) LedBuf, (uint8_t *)ButtonBuf, 2, 5000);
 	CE_H();       		// Write disable
 }
+*/
 
 
 
@@ -260,12 +249,6 @@ int main(void)
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim1);
-	
-	// Reset shift register 74HC595 & 74HC165
-	SRCLR_595_L();
-	OE_595_L();
-	SRCLR_595_H();
-	SH_LD_165_H();
 
 	STBY_CAN_L();
 	VIO_CAN_H();
@@ -273,7 +256,7 @@ int main(void)
 	LedGreen_OFF;
 	LedRed_OFF;
 	
-	HC595_Write_HC165_Read();
+	//HC595_Write_HC165_Read();
 	Button[0] = ButtonBuf[0];
 	Button[1] = ButtonBuf[1];
 	
@@ -325,6 +308,7 @@ int main(void)
 	About::Setup();
 	Leds::Setup();
 	CANLib::Setup();
+	ButtonsLeds::Setup();
 
   /* USER CODE END 2 */
 
@@ -346,7 +330,8 @@ int main(void)
 
 		About::Loop(current_time);
 		Leds::Loop(current_time);
-		CANLib::Loop(current_time);
+		//CANLib::Loop(current_time);
+		ButtonsLeds::Loop(current_time);
 		
 		
 		
@@ -365,7 +350,7 @@ int main(void)
 		LedBuf[0] = cn;
 		LedBuf[1] = cn;
 		
-		HC595_Write_HC165_Read();		// запись и чтение сдвиговых регистров
+		//HC595_Write_HC165_Read();		// запись и чтение сдвиговых регистров
 
 		// если есть нажатие
 		if(Button[0] != ButtonBuf[0] || Button[1] != ButtonBuf[1]){
@@ -393,7 +378,7 @@ int main(void)
 			
 		}
 
-	HAL_Delay(50);
+	//HAL_Delay(50);
 		
 	}
   /* USER CODE END 3 */
@@ -685,7 +670,7 @@ static void MX_USART3_UART_Init(void)
 
   /* USER CODE END USART3_Init 1 */
   huart1.Instance = USART3;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 500000;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;

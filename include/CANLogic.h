@@ -128,14 +128,14 @@ namespace CANLib
 	// TODO: this function has been put on hold.
 */
 
-
+/*
 	can_result_t void_set_handler(can_frame_t &can_frame, can_error_t &error)
 	{
 		if(can_frame.function_id == CAN_FUNC_SET_IN) return CAN_RESULT_IGNORE;
 
 
 	}
-
+*/
 	// вызывается, если по CAN пришла команда включения/выключения габаритов
 	can_result_t side_beam_set_handler(can_frame_t &can_frame, can_error_t &error)
 	{
@@ -154,7 +154,7 @@ namespace CANLib
 		}
 
 		can_frame.initialized = true;
-		can_frame.function_id = CAN_FUNC_SET_OUT_OK;
+		//can_frame.function_id = CAN_FUNC_SET_OUT_OK;
 		// can_frame.data[0] doesn't change
 		// TODO: может читать установленное значение с порта и его присваивать в can_frame.data[0]?
 		// читать вот этой функцией: HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_9)
@@ -346,8 +346,8 @@ namespace CANLib
 		// set CAN data structure to zero
 		// memset(&light_ecu_can_data, 0, sizeof(light_ecu_can_data));
 
-		obj_side_beam1.RegisterFunctionSet(&void_set_handler);
-		obj_side_beam2.RegisterFunctionSet(&void_set_handler);
+		//obj_side_beam1.RegisterFunctionSet(&void_set_handler);
+		//obj_side_beam2.RegisterFunctionSet(&void_set_handler);
 		
 		//obj_brake_light.RegisterFunctionSet(&brake_light_set_handler);
 		//obj_reverse_light.RegisterFunctionSet(&reverse_light_set_handler);

@@ -15,9 +15,10 @@ namespace Leds
 		HAL_Delay(100);
 		ledsObj.SetOff(ledsObj.LED_RED);
 
-		ledsObj.SetOn(ledsObj.LED_YELLOW);
+		// Когда было LED_YELLOW, всё падало..
+		ledsObj.SetOn(ledsObj.LED_GREEN);
 		HAL_Delay(100);
-		ledsObj.SetOff(ledsObj.LED_YELLOW);
+		ledsObj.SetOff(ledsObj.LED_GREEN);
 	}
 
 	inline void Loop(uint32_t &current_time)
