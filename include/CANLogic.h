@@ -1,6 +1,7 @@
 #pragma once
 
 #include <CANLibrary.h>
+#include <CANLibLight.h>
 
 void HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length);
 
@@ -9,6 +10,16 @@ extern UART_HandleTypeDef huart1;
 
 namespace CANLib
 {
+
+
+	CANLibLight lib_light(&HAL_CAN_Send);
+
+
+
+
+
+
+
 	//*********************************************************************
 	// CAN Library settings
 	//*********************************************************************
