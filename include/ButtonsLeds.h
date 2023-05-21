@@ -22,6 +22,8 @@ extern SPI_HandleTypeDef hspi2;
 namespace ButtonsLeds
 {
 	static constexpr uint8_t CFG_Count = 2;
+
+	void hw_spi(uint8_t *buttons, uint8_t *leds, uint8_t length);
 	
 	UserButtons<CFG_Count> obj(&hw_spi);
 	
@@ -33,7 +35,7 @@ namespace ButtonsLeds
 		HAL_SPI_TransmitReceive(&hspi2, (uint8_t*) leds, (uint8_t*) buttons, length, 5000);
 		CE_H();       		// Write disable
 
-		Serial::Printf("led: %02X %02X\r\n", leds[0], leds[1]);
+		//Serial::Printf("led: %02X %02X\r\n", leds[0], leds[1]);
 	}
 	
 	void OnChange(uint8_t port, bool state)
@@ -41,6 +43,35 @@ namespace ButtonsLeds
 		Serial::Printf(" > BTN: %d, state: %d;\r\n", port, state);
 
 		obj.SetLedState(port, state);
+
+		uint8_t set_byte = (state == true) ? 0xFF : 0x00;
+		switch (port)
+		{
+			case 1:
+			{
+				// Габариты, перёд, зад.
+				CANLib::lib_light.SendSet8<uint8_t>(0x00E4, set_byte);
+				CANLib::lib_light.SendSet8<uint8_t>(0x00C4, set_byte);
+				
+				break;
+			}
+			case 2:
+			{
+				// Тормоза, зад
+				CANLib::lib_light.SendSet8<uint8_t>(0x00E5, set_byte);
+				
+				break;
+			}
+			case 3:
+			{
+				// Дальный, перёд.
+				CANLib::lib_light.SendSet8<uint8_t>(0x00C6, set_byte);
+				
+				break;
+			}
+		}
+		
+		return;
 	}
 	
 	inline void Setup()
@@ -52,6 +83,7 @@ namespace ButtonsLeds
 		SH_LD_165_H();
 		
 		obj.RegChangeFunction(&OnChange);
+		obj.SetButtonMode(2, obj.MODE_TRIGGER);
 		
 		return;
 	}
