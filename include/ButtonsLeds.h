@@ -50,22 +50,22 @@ namespace ButtonsLeds
 			case 1:
 			{
 				// Габариты, перёд, зад.
-				CANLib::lib_light.SendSet8<uint8_t>(0x00E4, set_byte);
-				CANLib::lib_light.SendSet8<uint8_t>(0x00C4, set_byte);
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00E4, set_byte);
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00C4, set_byte);
 				
 				break;
 			}
 			case 2:
 			{
 				// Тормоза, зад
-				CANLib::lib_light.SendSet8<uint8_t>(0x00E5, set_byte);
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00E5, set_byte);
 				
 				break;
 			}
 			case 3:
 			{
 				// Дальный, перёд.
-				CANLib::lib_light.SendSet8<uint8_t>(0x00C6, set_byte);
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00C6, set_byte);
 				
 				break;
 			}

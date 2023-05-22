@@ -162,6 +162,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
     {
         CANLib::can_manager.IncomingCANFrame(RxHeader.StdId, RxData, RxHeader.DLC);
+		CANLib::can_manager_light.IncomingCANFrame(RxHeader.StdId, RxData, RxHeader.DLC);
         // LOG("RX: CAN 0x%04lX", RxHeader.StdId);
     }
 }

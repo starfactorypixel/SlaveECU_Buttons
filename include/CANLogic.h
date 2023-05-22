@@ -3,7 +3,7 @@
 #include <CANLibrary.h>
 #include <CANLibLight.h>
 
-void HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length);
+void HAL_CAN_Send(uint16_t id, uint8_t *data_raw, uint8_t length_raw);
 
 extern CAN_HandleTypeDef hcan;
 extern UART_HandleTypeDef huart1;
@@ -12,7 +12,7 @@ namespace CANLib
 {
 
 
-	CANLibLight lib_light(&HAL_CAN_Send);
+	CANLibLight can_manager_light(&HAL_CAN_Send);
 
 
 
@@ -397,6 +397,7 @@ namespace CANLib
 	inline void Loop(uint32_t &current_time)
 	{
 		can_manager.Process(current_time);
+		can_manager_light.Processing(current_time);
 
 		//*************************************************************
 		// TODO: CANManager experiments
