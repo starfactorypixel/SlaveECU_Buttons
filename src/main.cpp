@@ -198,9 +198,9 @@ void HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length)
 
     while (HAL_CAN_GetTxMailboxesFreeLevel(&hcan) == 0)
     {
-        Leds::ledsObj.SetOn(Leds::ledsObj.LED_RED);
+        Leds::obj.SetOn(Leds::LED_RED);
     }
-    Leds::ledsObj.SetOff(Leds::ledsObj.LED_RED);
+    Leds::obj.SetOff(Leds::LED_RED);
 
     if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
     {
@@ -726,7 +726,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB2 PB12 PB3 PB4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_12|GPIO_PIN_3|GPIO_PIN_4;
+  GPIO_InitStruct.Pin = /*GPIO_PIN_2|*/GPIO_PIN_12|GPIO_PIN_3/*|GPIO_PIN_4*/;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
