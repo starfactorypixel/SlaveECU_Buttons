@@ -5,6 +5,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <string.h>
 
 template <uint8_t _bytes_count> 
 class UserButtons
@@ -13,13 +14,19 @@ class UserButtons
 	using func_change_t = void (*)(uint8_t port, bool state);
 	
 	public:
-
+		
 		enum mode_t : uint8_t { MODE_NORMAL, MODE_TRIGGER };
 		
 		UserButtons() = delete;
 		
 		UserButtons(func_spi_rw_t func) : _func_spi_rw(func)
 		{
+			memset(_btn_mode, MODE_NORMAL, sizeof(_btn_mode));
+			memset(_btn_state_old, 0xFF, sizeof(_btn_state_old));
+			memset(_btn_state_new, 0xFF, sizeof(_btn_state_new));
+			memset(_btn_state_trig, false, sizeof(_btn_state_trig));
+			memset(_led_state_new, 0x00, sizeof(_led_state_new));
+			
 			return;
 		}
 		
@@ -35,7 +42,7 @@ class UserButtons
 			if(button == 0 || button > (_bytes_count * 8)) return false;
 			uint8_t idx = button - 1;
 			
-			return !((_buttons_state_curent[(idx / 8)] >> (idx % 8)) & 0x01);
+			return !((_btn_state_new[(idx / 8)] >> (idx % 8)) & 0x01);
 		}
 		
 		bool GetLedState(uint8_t led)
@@ -43,7 +50,7 @@ class UserButtons
 			if(led == 0 || led > (_bytes_count * 8)) return false;
 			uint8_t idx = led - 1;
 			
-			return ((_leds_state_curent[(idx / 8)] >> (idx % 8)) & 0x01);
+			return ((_led_state_new[(idx / 8)] >> (idx % 8)) & 0x01);
 		}
 
 /*
@@ -60,9 +67,9 @@ class UserButtons
 			uint8_t idx = led - 1;
 
 			if(state == true)
-				_leds_state_curent[(idx / 8)] |= (1 << (idx % 8));
+				_led_state_new[(idx / 8)] |= (1 << (idx % 8));
 			else
-				_leds_state_curent[(idx / 8)] &= ~(1 << (idx % 8));
+				_led_state_new[(idx / 8)] &= ~(1 << (idx % 8));
 			
 			return;
 		}
@@ -72,7 +79,7 @@ class UserButtons
 			if(led == 0 || led > (_bytes_count * 8)) return;
 			uint8_t idx = led - 1;
 			
-			_buttons_mode[idx] = mode;
+			_btn_mode[idx] = mode;
 			
 			return;
 		}
@@ -87,23 +94,23 @@ class UserButtons
 
 				for(uint8_t i = 0; i < (_bytes_count * 8); ++i)
 				{
-					bool bit_old = (_buttons_state_old[(i / 8)] >> (i % 8)) & 0x01;
-					bool bit_new = (_buttons_state_curent[(i / 8)] >> (i % 8)) & 0x01;
-					
-					if( _buttons_mode[i] == MODE_NORMAL )
+					bool bit_old = (_btn_state_old[(i / 8)] >> (i % 8)) & 0x01;
+					bool bit_new = (_btn_state_new[(i / 8)] >> (i % 8)) & 0x01;
+
+					if( _btn_mode[i] == MODE_NORMAL )
 					{
 						if( bit_old != bit_new )
 						{
 							_func_change( (i + 1), !bit_new );
 						}
 					}
-					else if( _buttons_mode[i] == MODE_TRIGGER )
+					else if( _btn_mode[i] == MODE_TRIGGER )
 					{
 						if( bit_new == false && bit_old != bit_new)
 						{
-							_buttons_state[i] = !_buttons_state[i];
+							_btn_state_trig[i] = !_btn_state_trig[i];
 							
-							_func_change( (i + 1), _buttons_state[i] );
+							_func_change( (i + 1), _btn_state_trig[i] );
 						}
 					}
 				}
@@ -116,24 +123,23 @@ class UserButtons
 
 		void _HW_SPI_RW_Offload()
 		{
-			memcpy(_buttons_state_old, _buttons_state_curent, _bytes_count);
+			memcpy(_btn_state_old, _btn_state_new, _bytes_count);
 			
-			// Реверсировать  _leds_state_curent ?
-			_func_spi_rw(_buttons_state_curent, _leds_state_curent, _bytes_count);
+			// Реверсировать  _led_state_new ?
+			_func_spi_rw(_btn_state_new, _led_state_new, _bytes_count);
 			
 			return;
 		}
 		
+		uint32_t _time_last_update = 0;
+		
 		func_spi_rw_t _func_spi_rw = nullptr;
 		func_change_t _func_change = nullptr;
+		
+		mode_t _btn_mode[_bytes_count * 8];			// Режим кнопки, нормальная или триггерная.
+		uint8_t _btn_state_old[_bytes_count];		// Состояние кнопк до считывания.
+		uint8_t _btn_state_new[_bytes_count];		// Состояние кнопки после считывания.
+		uint8_t _btn_state_trig[_bytes_count * 8];	// Состояние кнопки в режиме триггера.
+		uint8_t _led_state_new[_bytes_count];		// Состояние светодиодов.
 
-		uint32_t _time_last_update = 0;
-
-		uint8_t _buttons_state_old[_bytes_count];
-		uint8_t _buttons_state_curent[_bytes_count];
-		mode_t _buttons_mode[_bytes_count * 8] = { MODE_NORMAL };
-		bool _buttons_state[_bytes_count * 8] = { false };
-
-		//uint8_t _state_leds_old[_bytes_count];
-		uint8_t _leds_state_curent[_bytes_count];
 };
