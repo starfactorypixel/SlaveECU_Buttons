@@ -40,8 +40,8 @@ namespace ButtonsLeds
 	
 	void OnChange(uint8_t port, bool state)
 	{
-		Serial::Printf(" > BTN: %d, state: %d;\r\n", port, state);
-
+		Logger.PrintTopic("BTN").Printf("port: %2d, state: %d;", port, state).PrintNewLine();
+		
 		obj.SetLedState(port, state);
 
 		uint8_t set_byte = (state == true) ? 0xFF : 0x00;

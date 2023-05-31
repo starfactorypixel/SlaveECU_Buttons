@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <SerialUtils.h>
+#include <LoggerLibrary.h>
 #include <About.h>
 #include <Leds.h>
 #include <CANLogic.h>
@@ -94,8 +94,7 @@ SPI_HandleTypeDef hspi2;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 
-// На самом деле это huart3, но у нас везде используется huart3.
-UART_HandleTypeDef huart1;
+UART_HandleTypeDef hDebugUart;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -163,7 +162,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     {
         CANLib::can_manager.IncomingCANFrame(RxHeader.StdId, RxData, RxHeader.DLC);
 		CANLib::can_manager_light.IncomingCANFrame(RxHeader.StdId, RxData, RxHeader.DLC);
-        // LOG("RX: CAN 0x%04lX", RxHeader.StdId);
+        // DEBUG_LOG("RX: CAN 0x%04lX", RxHeader.StdId);
     }
 }
 
@@ -172,7 +171,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 {
     uint32_t er = HAL_CAN_GetError(hcan);
-    LOG("CAN ERROR: %lu %08lX", (unsigned long)er, (unsigned long)er);
+    DEBUG_LOG("CAN ERROR: %lu %08lX", (unsigned long)er, (unsigned long)er);
 }
 
 /// @brief Sends data via CAN bus
@@ -204,7 +203,7 @@ void HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length)
 
     if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
     {
-        LOG("CAN TX ERROR: 0x%04lX", TxHeader.StdId);
+        DEBUG_LOG("CAN TX ERROR: 0x%04lX", TxHeader.StdId);
     }
 }
 
@@ -670,15 +669,15 @@ static void MX_USART3_UART_Init(void)
   /* USER CODE BEGIN USART3_Init 1 */
 
   /* USER CODE END USART3_Init 1 */
-  huart1.Instance = USART3;
-  huart1.Init.BaudRate = 500000;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
+  hDebugUart.Instance = USART3;
+  hDebugUart.Init.BaudRate = 500000;
+  hDebugUart.Init.WordLength = UART_WORDLENGTH_8B;
+  hDebugUart.Init.StopBits = UART_STOPBITS_1;
+  hDebugUart.Init.Parity = UART_PARITY_NONE;
+  hDebugUart.Init.Mode = UART_MODE_TX_RX;
+  hDebugUart.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  hDebugUart.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&hDebugUart) != HAL_OK)
   {
     Error_Handler();
   }

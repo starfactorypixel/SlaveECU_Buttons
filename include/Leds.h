@@ -4,14 +4,8 @@
 
 namespace Leds
 {
-	/*
-		Инициализация пинов перенесена в бибилиотеку.
-		Из main необходимо выпилить HAL_GPIO_Init со всеми пинами светодиодов.
-		При портировании - удалить !
-	*/
-	#warning !!! READ ABOVE !!!
-	
 	static constexpr uint8_t CFG_LedCount = 2;
+	
 	enum leds_t : uint8_t
 	{
 		LED_NONE = 0,
