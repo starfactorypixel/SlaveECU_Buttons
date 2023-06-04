@@ -39,11 +39,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-	
-#define LedGreen_ON				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET)			//
-#define LedGreen_OFF			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET)		//
-#define LedRed_ON					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_SET)			//
-#define LedRed_OFF				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2, GPIO_PIN_RESET)		//
 
 
 #define IO_PIN_1                    GPIO_PIN_5			// GPIOB
@@ -99,26 +94,10 @@ UART_HandleTypeDef hDebugUart;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
-	uint32_t byteswritten,bytesread;
-	uint8_t result;
-	uint8_t readCAN =0;
-	
-// For CAN
-	CAN_TxHeaderTypeDef TxHeader;
-	CAN_RxHeaderTypeDef RxHeader;
-	uint8_t TxData[8] = {0,};
-	uint8_t RxData[8] = {0,};
-	uint32_t TxMailbox = 0;
-	uint8_t trans_str[30];
-
 // For Timers
 	uint32_t Timer1 = 0;
 	
-// For Regester
-	uint8_t LedBuf[2];
-	uint8_t ButtonBuf[2] = {0,};
-	uint8_t Button[2];
-	uint8_t Led[2] = {0,};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -253,47 +232,10 @@ int main(void)
 	STBY_CAN_L();
 	VIO_CAN_H();
 
-	LedGreen_OFF;
-	LedRed_OFF;
-	
-	//HC595_Write_HC165_Read();
-	Button[0] = ButtonBuf[0];
-	Button[1] = ButtonBuf[1];
-	
-		/* 
-		Заполняем структуру отвечающую за отправку кадров
-		StdId — это идентификатор стандартного кадра.
-		ExtId — это идентификатор расширенного кадра.
-		RTR = CAN_RTR_DATA — это говорит о том, что мы отправляем кадр с данными (Data Frame). Если указать CAN_RTR_REMOTE, тогда это будет Remote Frame.
-		IDE = CAN_ID_STD — это говорит о том, что мы отправляем стандартный кадр. Если указать CAN_ID_EXT, тогда это будет расширенный кадр. В StdId нужно будет указать 0, а в ExtId записать расширенный идентификатор.
-		DLC = 8 — количество полезных байт передаваемых в кадре (от 1 до 8).
-		TransmitGlobalTime — относится к Time Triggered Communication Mode, мы это не используем поэтому пишем 0.
-	*/
-	TxHeader.StdId = 0x07B0;
-	TxHeader.ExtId = 0;
-	TxHeader.RTR = CAN_RTR_DATA; //CAN_RTR_REMOTE
-	TxHeader.IDE = CAN_ID_STD;   // CAN_ID_EXT
-	TxHeader.DLC = 8;
-	TxHeader.TransmitGlobalTime = DISABLE;
-	
-	
 	/* активируем события которые будут вызывать прерывания  */
 	HAL_CAN_ActivateNotification(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_ERROR | CAN_IT_BUSOFF | CAN_IT_LAST_ERROR_CODE);
 	
 	HAL_CAN_Start(&hcan);
-	
-	TxHeader.StdId = 0x07B0;
-	TxHeader.DLC = 8;
-	TxData[0] = 0x44;
-	TxData[1] = 0x53;
-	TxData[2] = 0x46;
-	TxData[3] = 0x30;
-	TxData[4] = 0x30;
-	TxData[5] = 0x30;
-	TxData[6] = 0x33;
-	TxData[7] = 0x00;
-
-	
 	
 	
 
@@ -314,7 +256,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	uint8_t cn=0;
 
 
 	uint32_t current_time = HAL_GetTick();
@@ -330,56 +271,8 @@ int main(void)
 
 		About::Loop(current_time);
 		Leds::Loop(current_time);
-		//CANLib::Loop(current_time);
+		CANLib::Loop(current_time);
 		ButtonsLeds::Loop(current_time);
-		
-		
-		
-		if(readCAN != 0){
-			readCAN = 0;
-			if(RxData[6] == 0x31){
-        LedGreen_ON;
-			}
-			if(RxData[6] == 0x32){
-				LedGreen_OFF;
-			}
-		}
-		
-		cn++;
-
-		LedBuf[0] = cn;
-		LedBuf[1] = cn;
-		
-		//HC595_Write_HC165_Read();		// запись и чтение сдвиговых регистров
-
-		// если есть нажатие
-		if(Button[0] != ButtonBuf[0] || Button[1] != ButtonBuf[1]){
-			Button[0] = ButtonBuf[0];
-			Button[1] = ButtonBuf[1];
-			
-			TxHeader.StdId = 0x07B0;
-			TxHeader.DLC = 8;
-			TxData[0] = 0x44;
-			TxData[1] = 0x53;
-			TxData[2] = 0x46;
-			TxData[3] = 0x30;
-			TxData[4] = 0x30;
-			TxData[5] = 0x30;
-			TxData[6] = ButtonBuf[0];
-			TxData[7] = ButtonBuf[1];
-			//HAL_CAN_Send();
-			
-			if(BitIsSet(Button[0], 0)) {
-				LedGreen_OFF;
-			}
-			if(BitIsSet(Button[0], 1)) {
-				LedGreen_ON;
-			}
-			
-		}
-
-	//HAL_Delay(50);
-		
 	}
   /* USER CODE END 3 */
 }
@@ -703,7 +596,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_2|GPIO_PIN_12|GPIO_PIN_3|GPIO_PIN_4, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12|GPIO_PIN_3, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10, GPIO_PIN_RESET);
@@ -725,7 +618,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB2 PB12 PB3 PB4 */
-  GPIO_InitStruct.Pin = /*GPIO_PIN_2|*/GPIO_PIN_12|GPIO_PIN_3/*|GPIO_PIN_4*/;
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
