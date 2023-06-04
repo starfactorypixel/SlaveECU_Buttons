@@ -73,8 +73,8 @@ namespace CANLib
 	// set | request | event
 	// uint8_t	0..255	1 + 1	{ type[0] val[1] }
 	// Управление габаритами.
-	CANObject<uint8_t, 1> obj_side_beam1(0x00C4, CAN_TIMER_DISABLED, CAN_ERROR_DISABLED);
-	CANObject<uint8_t, 1> obj_side_beam2(0x00E4, CAN_TIMER_DISABLED, CAN_ERROR_DISABLED);
+	//CANObject<uint8_t, 1> obj_side_beam1(0x00C4, CAN_TIMER_DISABLED, CAN_ERROR_DISABLED);
+	//CANObject<uint8_t, 1> obj_side_beam2(0x00E4, CAN_TIMER_DISABLED, CAN_ERROR_DISABLED);
 
 
 
@@ -375,8 +375,8 @@ namespace CANLib
 		can_manager.RegisterObject(obj_block_error);
 
 		// specific blocks
-		can_manager.RegisterObject(obj_side_beam1);
-		can_manager.RegisterObject(obj_side_beam2);
+		//can_manager.RegisterObject(obj_side_beam1);
+		//can_manager.RegisterObject(obj_side_beam2);
 		//can_manager.RegisterObject(obj_brake_light);
 		//can_manager.RegisterObject(obj_reverse_light);
 		//can_manager.RegisterObject(obj_left_indicator);
@@ -385,12 +385,10 @@ namespace CANLib
 		//can_manager.RegisterObject(obj_custom_beam);
 		//can_manager.RegisterObject(obj_custom_image);
 
-		//*************************************************************
-		// TODO: CANManager experiments
-		// init normal timer for Block_Info
-		obj_block_info.SetValue(0, 0x66, CAN_TIMER_TYPE_NORMAL);
-		//*************************************************************
-
+		// Set versions data to block_info.
+		obj_block_info.SetValue(0, (About::board_type << 3 | About::board_ver), CAN_TIMER_TYPE_NORMAL);
+		obj_block_info.SetValue(1, (About::soft_ver << 2 | About::can_ver), CAN_TIMER_TYPE_NORMAL);
+		
 		return;
 	}
 
@@ -398,11 +396,10 @@ namespace CANLib
 	{
 		can_manager.Process(current_time);
 		can_manager_light.Processing(current_time);
-
-		//*************************************************************
-		// TODO: CANManager experiments
+		
+		// Set uptime to block_info.
 		static uint32_t iter = 0;
-		if (current_time - iter > 1000)
+		if(current_time - iter > 1000)
 		{
 			iter = current_time;
 
@@ -412,8 +409,7 @@ namespace CANLib
 			obj_block_info.SetValue(5, data[2], CAN_TIMER_TYPE_NORMAL);
 			obj_block_info.SetValue(6, data[3], CAN_TIMER_TYPE_NORMAL);
 		}
-		//*************************************************************
-
+		
 		current_time = HAL_GetTick();
 
 		return;
