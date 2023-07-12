@@ -38,6 +38,16 @@ namespace ButtonsLeds
 		//Serial::Printf("led: %02X %02X\r\n", leds[0], leds[1]);
 	}
 	
+/*
+	Port map
+		[09]	[13]	[01]	[05]
+		[10]	[14]	[02]	[06]
+		[11]	[15]	[03]	[07]
+		[12]	[16]	[04]	[08]
+
+					[ SWD ]
+*/
+
 	void OnChange(uint8_t port, bool state)
 	{
 		Logger.PrintTopic("BTN").Printf("port: %2d, state: %d;", port, state).PrintNewLine();
@@ -49,24 +59,93 @@ namespace ButtonsLeds
 		{
 			case 1:
 			{
-				// Габариты, перёд, зад.
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00E4, set_byte);
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00C4, set_byte);
-				
+				// Ближний свет
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00C5, set_byte);
 				break;
 			}
 			case 2:
 			{
-				// Тормоза, зад
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00E5, set_byte);
-				
+				// Габариты, перёд, зад.
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00C4, set_byte);
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00E4, set_byte);
 				break;
 			}
 			case 3:
 			{
-				// Дальный, перёд.
+				// Свет в салоне
+				break;
+			}
+			case 4:
+			{
+				// Клаксон
+				break;
+			}
+			case 5:
+			{
+				// Аварийка
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00C9, set_byte);
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00E9, set_byte);
+				break;
+			}
+			case 6:
+			{
+				// Вентилятор
+				break;
+			}
+			case 7:
+			{
+				// Левый поворотник
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00C7, set_byte);
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00E7, set_byte);
+				break;
+			}
+			case 8:
+			{
+				// Педаль тормоза
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00E5, set_byte);
+				break;
+			}
+			case 9:
+			{
+				// Кнопка открытия капота
+				break;
+			}
+			case 10:
+			{
+				// Кнопка открытия багажника
+				break;
+			}
+			case 11:
+			{
+				// Кнопка открытия левой двери
+				break;
+			}
+			case 12:
+			{
+				// Правый поворотник
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00C8, set_byte);
+				CANLib::can_manager_light.SendSet<uint8_t>(0x00E8, set_byte);
+				break;
+			}
+			case 13:
+			{
+				// Концевик левая дверь
+				break;
+			}
+			case 14:
+			{
+				// Концевик правая дверь
+				break;
+			}
+			case 15:
+			{
+				// Кнопка открытия правой двери
+				break;
+			}
+			case 16:
+			{
+				// Дальний свет
 				CANLib::can_manager_light.SendSet<uint8_t>(0x00C6, set_byte);
-				
 				break;
 			}
 		}
@@ -83,7 +162,7 @@ namespace ButtonsLeds
 		SH_LD_165_H();
 		
 		obj.RegChangeFunction(&OnChange);
-		obj.SetButtonMode(2, obj.MODE_TRIGGER);
+		//obj.SetButtonMode(2, obj.MODE_TRIGGER);
 		
 		return;
 	}
