@@ -1,4 +1,3 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file           : main.c
@@ -16,12 +15,7 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
-/* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -30,16 +24,6 @@
 #include <Leds.h>
 #include <CANLogic.h>
 #include <ButtonsLeds.h>
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USER CODE BEGIN PTD */
-
-/* USER CODE END PTD */
-
-/* Private define ------------------------------------------------------------*/
-/* USER CODE BEGIN PD */
-
 
 #define IO_PIN_1                    GPIO_PIN_5			// GPIOB
 #define IO_PIN_2                    GPIO_PIN_6			// GPIOB
@@ -52,55 +36,31 @@
 #define IO_PIN_9                    GPIO_PIN_0			// GPIOA
 #define IO_PIN_10                   GPIO_PIN_1			// GPIOA
 
-
 #define IO_INPUT_MODE(PIN,PORT)			(PORT)->ODR |= PIN;         // настроить пин на вход
 #define IO_OUTPUT_MODE(PIN,PORT)		(PORT)->IDR |= PIN          // настроить пин на выход
 #define IO_LOW(PIN,PORT)						HAL_GPIO_WritePin((PORT), (PIN), GPIO_PIN_RESET); 		// лог 0 на выход
 #define IO_HIGH(PIN,PORT)						HAL_GPIO_WritePin((PORT), (PIN), GPIO_PIN_SET);       // лог 1 на выход
 #define IO_READ(PIN,PORT)           HAL_GPIO_ReadPin((PORT), (PIN))   // чтение пина
 
-
-
 #define STBY_CAN_H()      	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_SET);	// установить выход защелка в High
 #define STBY_CAN_L()       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);	// установить выход защелка в Low
 #define VIO_CAN_H()      	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);	// установить выход защелка в High
 #define VIO_CAN_L()       HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);	// установить выход защелка в Low
-
 
 #define ClearBit(reg, bit)       reg &= (~(1<<(bit)))   //пример: ClearBit(PORTB, 1); //сбросить 1-й бит PORTB
 #define SetBit(reg, bit)          reg |= (1<<(bit))     //пример: SetBit(PORTB, 3); //установить 3-й бит PORTB
 #define BitIsClear(reg, bit)    ((reg & (1<<(bit))) == 0)		//пример: if (BitIsClear(PORTB,1)) {...} //если бит очищен
 #define BitIsSet(reg, bit)       ((reg & (1<<(bit))) != 0)		//пример: if(BitIsSet(PORTB,2)) {...} //если бит установлен
 
-/* USER CODE END PD */
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
-
-/* USER CODE END PM */
-
-/* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-
 CAN_HandleTypeDef hcan;
-
 SPI_HandleTypeDef hspi2;
-
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
-
 UART_HandleTypeDef hDebugUart;
 
-/* USER CODE BEGIN PV */
-/* Private variables ---------------------------------------------------------*/
+uint32_t Timer1 = 0;
 
-// For Timers
-	uint32_t Timer1 = 0;
-	
-
-/* USER CODE END PV */
-
-/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM2_Init(void);
@@ -109,26 +69,6 @@ static void MX_TIM1_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_SPI2_Init(void);
-/* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
-
-/* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-
-
-/*
-void HC595_Write_HC165_Read(){
-	CE_L();        		// Write enadle
-	SH_LD_165_L();		// Reset HC165
-	SH_LD_165_H();
-	HAL_SPI_TransmitReceive(&hspi2, (uint8_t*) LedBuf, (uint8_t *)ButtonBuf, 2, 5000);
-	CE_H();       		// Write disable
-}
-*/
-
-
 
 /// @brief Callback function of CAN receiver.
 /// @param hcan Pointer to the structure that contains CAN configuration.
@@ -186,39 +126,15 @@ void HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length)
     }
 }
 
-
-
-
 /**
   * @brief  The application entry point.
   * @retval int
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-	
-
-
-	
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM2_Init();
   MX_CAN_Init();
@@ -226,7 +142,7 @@ int main(void)
   MX_ADC1_Init();
   MX_USART3_UART_Init();
   MX_SPI2_Init();
-  /* USER CODE BEGIN 2 */
+
 	HAL_TIM_Base_Start_IT(&htim1);
 
 	STBY_CAN_L();
@@ -236,45 +152,28 @@ int main(void)
 	HAL_CAN_ActivateNotification(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_ERROR | CAN_IT_BUSOFF | CAN_IT_LAST_ERROR_CODE);
 	
 	HAL_CAN_Start(&hcan);
-	
-	
 
 	IO_OUTPUT_MODE(IO_PIN_1,GPIOB);				// настроить пин на выход
 	IO_LOW(IO_PIN_1,GPIOB);         			// установить лог 0 на выходе
 	IO_HIGH(IO_PIN_1,GPIOB);         			// установить лог 1 на выходе
 	IO_INPUT_MODE(IO_PIN_1,GPIOB);				// настроить пин на вход
 
-
-
-
 	About::Setup();
 	Leds::Setup();
 	CANLib::Setup();
 	ButtonsLeds::Setup();
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-
-
 	uint32_t current_time = HAL_GetTick();
-	
 	while (1)
 	{
-        // don't need to update current_time because it is always updated by Loop() functions
-        // current_time = HAL_GetTick();
-
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+    // don't need to update current_time because it is always updated by Loop() functions
+    // current_time = HAL_GetTick();
 
 		About::Loop(current_time);
 		Leds::Loop(current_time);
 		CANLib::Loop(current_time);
 		ButtonsLeds::Loop(current_time);
 	}
-  /* USER CODE END 3 */
 }
 
 /**
@@ -329,18 +228,8 @@ void SystemClock_Config(void)
   */
 static void MX_ADC1_Init(void)
 {
-
-  /* USER CODE BEGIN ADC1_Init 0 */
-
-  /* USER CODE END ADC1_Init 0 */
-
   ADC_ChannelConfTypeDef sConfig = {0};
-
-  /* USER CODE BEGIN ADC1_Init 1 */
-
-  /* USER CODE END ADC1_Init 1 */
-  /** Common config
-  */
+  // Common config
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
@@ -352,8 +241,7 @@ static void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
-  /** Configure Regular Channel
-  */
+  // Configure Regular Channel
   sConfig.Channel = ADC_CHANNEL_8;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
@@ -361,10 +249,6 @@ static void MX_ADC1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN ADC1_Init 2 */
-
-  /* USER CODE END ADC1_Init 2 */
-
 }
 
 /**
@@ -374,14 +258,8 @@ static void MX_ADC1_Init(void)
   */
 static void MX_CAN_Init(void)
 {
-
-  /* USER CODE BEGIN CAN_Init 0 */
 	CAN_FilterTypeDef  sFilterConfig;
-  /* USER CODE END CAN_Init 0 */
 
-  /* USER CODE BEGIN CAN_Init 1 */
-
-  /* USER CODE END CAN_Init 1 */
   hcan.Instance = CAN1;
   hcan.Init.Prescaler = 4;
   hcan.Init.Mode = CAN_MODE_NORMAL;
@@ -398,7 +276,7 @@ static void MX_CAN_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN CAN_Init 2 */
+
 	sFilterConfig.FilterBank = 0;
 	sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
 	sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT; 
@@ -414,8 +292,6 @@ static void MX_CAN_Init(void)
 	{
 	Error_Handler();
 	}
-  /* USER CODE END CAN_Init 2 */
-
 }
 
 /**
@@ -425,15 +301,7 @@ static void MX_CAN_Init(void)
   */
 static void MX_SPI2_Init(void)
 {
-
-  /* USER CODE BEGIN SPI2_Init 0 */
-
-  /* USER CODE END SPI2_Init 0 */
-
-  /* USER CODE BEGIN SPI2_Init 1 */
-
-  /* USER CODE END SPI2_Init 1 */
-  /* SPI2 parameter configuration*/
+  // SPI2 parameter configuration
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
@@ -450,10 +318,6 @@ static void MX_SPI2_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI2_Init 2 */
-
-  /* USER CODE END SPI2_Init 2 */
-
 }
 
 /**
@@ -463,17 +327,9 @@ static void MX_SPI2_Init(void)
   */
 static void MX_TIM1_Init(void)
 {
-
-  /* USER CODE BEGIN TIM1_Init 0 */
-
-  /* USER CODE END TIM1_Init 0 */
-
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-  /* USER CODE BEGIN TIM1_Init 1 */
-
-  /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 63999;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -496,10 +352,6 @@ static void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TIM1_Init 2 */
-
-  /* USER CODE END TIM1_Init 2 */
-
 }
 
 /**
@@ -509,17 +361,9 @@ static void MX_TIM1_Init(void)
   */
 static void MX_TIM2_Init(void)
 {
-
-  /* USER CODE BEGIN TIM2_Init 0 */
-
-  /* USER CODE END TIM2_Init 0 */
-
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -541,10 +385,6 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TIM2_Init 2 */
-
-  /* USER CODE END TIM2_Init 2 */
-
 }
 
 /**
@@ -554,14 +394,6 @@ static void MX_TIM2_Init(void)
   */
 static void MX_USART3_UART_Init(void)
 {
-
-  /* USER CODE BEGIN USART3_Init 0 */
-
-  /* USER CODE END USART3_Init 0 */
-
-  /* USER CODE BEGIN USART3_Init 1 */
-
-  /* USER CODE END USART3_Init 1 */
   hDebugUart.Instance = USART3;
   hDebugUart.Init.BaudRate = 500000;
   hDebugUart.Init.WordLength = UART_WORDLENGTH_8B;
@@ -574,10 +406,6 @@ static void MX_USART3_UART_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN USART3_Init 2 */
-
-  /* USER CODE END USART3_Init 2 */
-
 }
 
 /**
@@ -589,27 +417,25 @@ static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-  /* GPIO Ports Clock Enable */
+  // GPIO Ports Clock Enable
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /*Configure GPIO pin Output Level */
+  // Configure GPIO pin Output Level
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12|GPIO_PIN_3, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
+  // Configure GPIO pin Output Level
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PC13 PC14 PC15 */
+  // Configure GPIO pins : PC13 PC14 PC15
   GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA0 PA1 PA2 PA3
-                           PA4 PA5 PA6 PA7
-                           PA15 */
+  // Configure GPIO pins : PA0 PA1 PA2 PA3 PA4 PA5 PA6 PA7 PA15
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3
                           |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7
                           |GPIO_PIN_15;
@@ -617,35 +443,33 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB2 PB12 PB3 PB4 */
+  // Configure GPIO pins : PB2 PB12 PB3 PB4
   GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA8 PA9 PA10 */
+  // Configure GPIO pins : PA8 PA9 PA10
   GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB5 PB6 PB7 */
+  // Configure GPIO pins : PB5 PB6 PB7
   GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PB8 PB9 */
+  // Configure GPIO pins : PB8 PB9
   GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
 }
 
-/* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim==&htim1)
@@ -653,7 +477,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		Timer1++;
 	}
 }
-/* USER CODE END 4 */
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -661,12 +484,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
+  // User can add his own implementation to report the HAL error return state
   while(1)
   {
   }
-  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
@@ -679,11 +500,7 @@ void Error_Handler(void)
   */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
