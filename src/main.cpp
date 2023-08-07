@@ -80,7 +80,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
   if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
   {
     CANLib::can_manager.IncomingCANFrame(RxHeader.StdId, RxData, RxHeader.DLC);
-    CANLib::can_manager_light.IncomingCANFrame(RxHeader.StdId, RxData, RxHeader.DLC);
     // DEBUG_LOG("RX: CAN 0x%04lX", RxHeader.StdId);
   }
 }
@@ -257,40 +256,43 @@ static void MX_ADC1_Init(void)
  */
 static void MX_CAN_Init(void)
 {
-  CAN_FilterTypeDef sFilterConfig;
+    // https://istarik.ru/blog/stm32/159.html
 
-  hcan.Instance = CAN1;
-  hcan.Init.Prescaler = 4;
-  hcan.Init.Mode = CAN_MODE_NORMAL;
-  hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan.Init.TimeSeg1 = CAN_BS1_13TQ;
-  hcan.Init.TimeSeg2 = CAN_BS2_2TQ;
-  hcan.Init.TimeTriggeredMode = DISABLE;
-  hcan.Init.AutoBusOff = DISABLE;
-  hcan.Init.AutoWakeUp = DISABLE;
-  hcan.Init.AutoRetransmission = DISABLE;
-  hcan.Init.ReceiveFifoLocked = DISABLE;
-  hcan.Init.TransmitFifoPriority = DISABLE;
-  if (HAL_CAN_Init(&hcan) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    CAN_FilterTypeDef sFilterConfig;
 
-  sFilterConfig.FilterBank = 0;
-  sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
-  sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
-  sFilterConfig.FilterIdHigh = 0x0000;
-  sFilterConfig.FilterIdLow = 0x0000;
-  sFilterConfig.FilterMaskIdHigh = 0x0000;
-  sFilterConfig.FilterMaskIdLow = 0x0000;
-  sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
-  sFilterConfig.FilterActivation = ENABLE;
-  // sFilterConfig.SlaveStartFilterBank = 14;
+    // CAN interface initialization
+    hcan.Instance = CAN1;
+    hcan.Init.Prescaler = 4;
+    hcan.Init.Mode = CAN_MODE_NORMAL; // CAN_MODE_NORMAL
+    hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
+    hcan.Init.TimeSeg1 = CAN_BS1_13TQ;
+    hcan.Init.TimeSeg2 = CAN_BS2_2TQ;
+    hcan.Init.TimeTriggeredMode = DISABLE;   // DISABLE
+    hcan.Init.AutoBusOff = ENABLE;           // DISABLE
+    hcan.Init.AutoWakeUp = ENABLE;           // DISABLE
+    hcan.Init.AutoRetransmission = DISABLE;  // DISABLE
+    hcan.Init.ReceiveFifoLocked = ENABLE;    // DISABLE
+    hcan.Init.TransmitFifoPriority = ENABLE; // DISABLE
+    if (HAL_CAN_Init(&hcan) != HAL_OK)
+    {
+        Error_Handler();
+    }
 
-  if (HAL_CAN_ConfigFilter(&hcan, &sFilterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    // CAN filtering initialization
+    sFilterConfig.FilterBank = 0;
+    sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+    sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+    sFilterConfig.FilterIdHigh = 0x0000;
+    sFilterConfig.FilterIdLow = 0x0000;
+    sFilterConfig.FilterMaskIdHigh = 0x0000;
+    sFilterConfig.FilterMaskIdLow = 0x0000;
+    sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
+    sFilterConfig.FilterActivation = ENABLE;
+    // sFilterConfig.SlaveStartFilterBank = 14;
+    if (HAL_CAN_ConfigFilter(&hcan, &sFilterConfig) != HAL_OK)
+    {
+        Error_Handler();
+    }
 }
 
 /**
