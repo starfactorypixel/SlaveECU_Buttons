@@ -54,20 +54,25 @@ namespace ButtonsLeds
 		
 		obj.SetLedState(port, state);
 
-		uint8_t set_byte = (state == true) ? 0xFF : 0x00;
-		switch (port)
+		//uint8_t set_byte = (state == true) ? 0xFF : 0x00;
+		uint8_t param = (state == true) ? 0xFF : 0x00;
+		uint8_t send_data[1] = {param};
+		
+		switch(port)
 		{
 			case 1:
 			{
 				// Ближний свет
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00C5, set_byte);
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_low_beam, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+				
 				break;
 			}
 			case 2:
 			{
 				// Габариты, перёд, зад.
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00C4, set_byte);
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00E4, set_byte);
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_side_beam_f, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_side_beam_r, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+
 				break;
 			}
 			case 3:
@@ -83,8 +88,9 @@ namespace ButtonsLeds
 			case 5:
 			{
 				// Аварийка
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00C9, set_byte);
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00E9, set_byte);
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_hazard_beam_f, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_hazard_beam_r, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+
 				break;
 			}
 			case 6:
@@ -95,14 +101,16 @@ namespace ButtonsLeds
 			case 7:
 			{
 				// Левый поворотник
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00C7, set_byte);
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00E7, set_byte);
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_left_indicator_f, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_left_indicator_r, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+				
 				break;
 			}
 			case 8:
 			{
 				// Педаль тормоза
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00E5, set_byte);
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_brake_light, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+
 				break;
 			}
 			case 9:
@@ -123,8 +131,9 @@ namespace ButtonsLeds
 			case 12:
 			{
 				// Правый поворотник
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00C8, set_byte);
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00E8, set_byte);
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_right_indicator_f, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_right_indicator_r, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+
 				break;
 			}
 			case 13:
@@ -145,7 +154,8 @@ namespace ButtonsLeds
 			case 16:
 			{
 				// Дальний свет
-				CANLib::can_manager_light.SendSet<uint8_t>(0x00C6, set_byte);
+				CANLib::can_manager.SendCustomFrame(CANLib::obj_high_beam, CAN_FUNC_SET_IN, send_data, sizeof(send_data));
+				
 				break;
 			}
 		}
