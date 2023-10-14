@@ -14,7 +14,7 @@ namespace CANLib
 	//*********************************************************************
 
 	/// @brief Number of CANObjects in CANManager
-	static constexpr uint8_t CFG_CANObjectsCount = 12;
+	static constexpr uint8_t CFG_CANObjectsCount = 22;
 
 	/// @brief The size of CANManager's internal CAN frame buffer
 	static constexpr uint8_t CFG_CANFrameBufferSize = 16;
@@ -51,7 +51,7 @@ namespace CANLib
 	// Ошибки блока. См. "Системные параметры".
 	CANObject<uint8_t, 7> obj_block_error(0x0123);
 
-	// ...
+/*
 	CANObject<uint8_t, 1> obj_low_beam(0x00C5);
 
 	CANObject<uint8_t, 1> obj_side_beam_f(0x00C4);
@@ -69,7 +69,41 @@ namespace CANLib
 	CANObject<uint8_t, 1> obj_right_indicator_r(0x00E8);
 
 	CANObject<uint8_t, 1> obj_high_beam(0x00C6);
-	// ...
+*/
+
+	
+	
+	// --------------------------------------------------------------------------------------------
+	
+	// 0x0124 .. 0x0133
+	// set | event
+	// uint8_t	bitmask	1 + X	{ type[0] data[1] }
+	// Кнопка / светодиод 01 .. 16
+	CANObject<uint8_t, 1> obj_buttonled_01(0x0124);
+	CANObject<uint8_t, 1> obj_buttonled_02(0x0125);
+	CANObject<uint8_t, 1> obj_buttonled_03(0x0126);
+	CANObject<uint8_t, 1> obj_buttonled_04(0x0127);
+	CANObject<uint8_t, 1> obj_buttonled_05(0x0128);
+	CANObject<uint8_t, 1> obj_buttonled_06(0x0129);
+	CANObject<uint8_t, 1> obj_buttonled_07(0x012A);
+	CANObject<uint8_t, 1> obj_buttonled_08(0x012B);
+	CANObject<uint8_t, 1> obj_buttonled_09(0x012C);
+	CANObject<uint8_t, 1> obj_buttonled_10(0x012D);
+	CANObject<uint8_t, 1> obj_buttonled_11(0x012E);
+	CANObject<uint8_t, 1> obj_buttonled_12(0x012F);
+	CANObject<uint8_t, 1> obj_buttonled_13(0x0130);
+	CANObject<uint8_t, 1> obj_buttonled_14(0x0131);
+	CANObject<uint8_t, 1> obj_buttonled_15(0x0132);
+	CANObject<uint8_t, 1> obj_buttonled_16(0x0133);
+
+	// 0x0134 .. 0x0135
+	// event
+	// uint8_t	bitmask	1 + X	{ type[0] data[1] }
+	// Подрулевой переключатель 1 .. 2
+	CANObject<uint8_t, 1> obj_switch_1(0x0134);
+	CANObject<uint8_t, 1> obj_switch_2(0x0135);
+	
+	// --------------------------------------------------------------------------------------------
 
 	
 	inline void Setup()
@@ -85,6 +119,26 @@ namespace CANLib
 		can_manager.RegisterObject(obj_block_health);
 		can_manager.RegisterObject(obj_block_features);
 		can_manager.RegisterObject(obj_block_error);
+
+		can_manager.RegisterObject(obj_buttonled_01);
+		can_manager.RegisterObject(obj_buttonled_02);
+		can_manager.RegisterObject(obj_buttonled_03);
+		can_manager.RegisterObject(obj_buttonled_04);
+		can_manager.RegisterObject(obj_buttonled_05);
+		can_manager.RegisterObject(obj_buttonled_06);
+		can_manager.RegisterObject(obj_buttonled_07);
+		can_manager.RegisterObject(obj_buttonled_08);
+		can_manager.RegisterObject(obj_buttonled_09);
+		can_manager.RegisterObject(obj_buttonled_10);
+		can_manager.RegisterObject(obj_buttonled_11);
+		can_manager.RegisterObject(obj_buttonled_12);
+		can_manager.RegisterObject(obj_buttonled_13);
+		can_manager.RegisterObject(obj_buttonled_14);
+		can_manager.RegisterObject(obj_buttonled_15);
+		can_manager.RegisterObject(obj_buttonled_16);
+		can_manager.RegisterObject(obj_switch_1);
+		can_manager.RegisterObject(obj_switch_2);
+		
 		
 		// Set versions data to block_info.
 		obj_block_info.SetValue(0, (About::board_type << 3 | About::board_ver), CAN_TIMER_TYPE_NORMAL);
