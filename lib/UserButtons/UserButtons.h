@@ -19,7 +19,7 @@ class UserButtons
 		
 		UserButtons() = delete;
 		
-		UserButtons(func_spi_rw_t func) : _func_spi_rw(func)
+		UserButtons(func_spi_rw_t func, bool use_init = true) : _func_spi_rw(func), _init(use_init)
 		{
 			memset(_btn_mode, MODE_NORMAL, sizeof(_btn_mode));
 			memset(_btn_state_old, 0xFF, sizeof(_btn_state_old));
@@ -97,16 +97,16 @@ class UserButtons
 					bool bit_old = (_btn_state_old[(i / 8)] >> (i % 8)) & 0x01;
 					bool bit_new = (_btn_state_new[(i / 8)] >> (i % 8)) & 0x01;
 
-					if( _btn_mode[i] == MODE_NORMAL )
+					if( _btn_mode[i] == MODE_NORMAL || _init == true )
 					{
-						if( bit_old != bit_new )
+						if( bit_old != bit_new || _init == true )
 						{
 							_func_change( (i + 1), !bit_new );
 						}
 					}
 					else if( _btn_mode[i] == MODE_TRIGGER )
 					{
-						if( bit_new == false && bit_old != bit_new)
+						if( (bit_new == false && bit_old != bit_new) )
 						{
 							_btn_state_trig[i] = !_btn_state_trig[i];
 							
@@ -114,6 +114,8 @@ class UserButtons
 						}
 					}
 				}
+				
+				_init = false;
 			}
 			
 			return;
@@ -141,5 +143,7 @@ class UserButtons
 		uint8_t _btn_state_new[_bytes_count];		// Состояние кнопки после считывания.
 		uint8_t _btn_state_trig[_bytes_count * 8];	// Состояние кнопки в режиме триггера.
 		uint8_t _led_state_new[_bytes_count];		// Состояние светодиодов.
+
+		bool _init;									// Костыль, который заставит все кнопки бросить своё состояние при инициализации.
 
 };
