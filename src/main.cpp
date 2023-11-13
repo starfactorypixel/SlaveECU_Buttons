@@ -88,7 +88,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
 {
-	Leds::obj.SetOn(Leds::LED_WHITE, 100);
+	Leds::obj.SetOn(Leds::LED_RED, 100);
 	
 	DEBUG_LOG_TOPIC("CAN", "RX error event, code: 0x%08lX\n", HAL_CAN_GetError(hcan));
 	
@@ -111,13 +111,13 @@ void HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length)
 	
 	while( HAL_CAN_GetTxMailboxesFreeLevel(&hcan) == 0 )
 	{
-		Leds::obj.SetOn(Leds::LED_WHITE);
+		Leds::obj.SetOn(Leds::LED_RED);
 	}
-	Leds::obj.SetOff(Leds::LED_WHITE);
+	Leds::obj.SetOff(Leds::LED_RED);
 	
 	if( HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK )
 	{
-		Leds::obj.SetOn(Leds::LED_WHITE, 100);
+		Leds::obj.SetOn(Leds::LED_RED, 100);
 
 		DEBUG_LOG_TOPIC("CAN", "TX error event, code: 0x%08lX\n", HAL_CAN_GetError(&hcan));
 	}
