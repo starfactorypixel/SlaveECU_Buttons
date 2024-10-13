@@ -1,20 +1,22 @@
 #pragma once
-
 #include <CANLibrary.h>
 
-void HAL_CAN_Send(uint16_t id, uint8_t *data_raw, uint8_t length_raw);
-
 extern CAN_HandleTypeDef hcan;
-extern UART_HandleTypeDef huart1;
 
 namespace CANLib
 {
+	void HAL_CAN_Send(uint16_t id, uint8_t *data_raw, uint8_t length_raw);
+	
+	
+	EasyPinD can_rs(GPIOA, {GPIO_PIN_15, GPIO_MODE_OUTPUT_OD, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW}, GPIO_PIN_SET);
+
+
 	//*********************************************************************
 	// CAN Library settings
 	//*********************************************************************
 
 	/// @brief Number of CANObjects in CANManager
-	static constexpr uint8_t CFG_CANObjectsCount = 22;
+	static constexpr uint8_t CFG_CANObjectsCount = 23;
 
 	/// @brief The size of CANManager's internal CAN frame buffer
 	static constexpr uint8_t CFG_CANFrameBufferSize = 16;
@@ -102,12 +104,85 @@ namespace CANLib
 	// Подрулевой переключатель 1 .. 2
 	CANObject<uint8_t, 1> obj_switch_1(0x0134);
 	CANObject<uint8_t, 1> obj_switch_2(0x0135);
+
+
+	CANObject<uint8_t, 2> obj_button_action(0x0789);
 	
 	// --------------------------------------------------------------------------------------------
 
+
+
+
+	void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+	{
+		CAN_RxHeaderTypeDef RxHeader = {0};
+		uint8_t RxData[8] = {0};
+		
+		if( HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK )
+		{
+			CANLib::can_manager.IncomingCANFrame(RxHeader.StdId, RxData, RxHeader.DLC);
+		}
+		
+		return;
+	}
+
+	void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
+	{
+		Leds::obj.SetOn(Leds::LED_RED, 100);
+		
+		DEBUG_LOG_TOPIC("CAN", "RX error event, code: 0x%08lX\n", HAL_CAN_GetError(hcan));
+		
+		return;
+	}
+
+	void HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length)
+	{
+		CAN_TxHeaderTypeDef TxHeader = {0};
+		uint8_t TxData[8] = {0};
+		uint32_t TxMailbox = 0;
+		
+		TxHeader.StdId = id;
+		TxHeader.ExtId = 0;
+		TxHeader.RTR  = CAN_RTR_DATA;
+		TxHeader.IDE = CAN_ID_STD;
+		TxHeader.DLC = length;
+		TxHeader.TransmitGlobalTime = DISABLE;
+		memcpy(TxData, data, length);
+		
+		while( HAL_CAN_GetTxMailboxesFreeLevel(&hcan) == 0 )
+		{
+			Leds::obj.SetOn(Leds::LED_RED);
+		}
+		Leds::obj.SetOff(Leds::LED_RED);
+		
+		if( HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK )
+		{
+			Leds::obj.SetOn(Leds::LED_RED, 100);
+
+			DEBUG_LOG_TOPIC("CAN", "TX error event, code: 0x%08lX\n", HAL_CAN_GetError(&hcan));
+		}
+		
+		return;
+	}
+
+
+
+
+
+
+
+	void HardwareSetup()
+	{
+		can_rs.Init();
+		
+		HAL_CAN_ActivateNotification(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_ERROR | CAN_IT_BUSOFF | CAN_IT_LAST_ERROR_CODE);
+		HAL_CAN_Start(&hcan);
+	}
 	
 	inline void Setup()
 	{
+		HardwareSetup();
+		
 		// system blocks
 		set_block_info_params(obj_block_info);
 		set_block_health_params(obj_block_health);
@@ -139,6 +214,8 @@ namespace CANLib
 		can_manager.RegisterObject(obj_switch_1);
 		can_manager.RegisterObject(obj_switch_2);
 		
+		can_manager.RegisterObject(obj_button_action);
+		
 		
 		// Set versions data to block_info.
 		obj_block_info.SetValue(0, (About::board_type << 3 | About::board_ver), CAN_TIMER_TYPE_NORMAL);
@@ -153,7 +230,7 @@ namespace CANLib
 		
 		// Set uptime to block_info.
 		static uint32_t iter = 0;
-		if(current_time - iter > 1000)
+		if(current_time - iter > 1500)
 		{
 			iter = current_time;
 
