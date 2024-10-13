@@ -20,18 +20,19 @@ namespace SPI
 	inline void SPI_Write(uint8_t *data, uint16_t length)
 	{
 		//HAL_SPI_Transmit(&hspi2, data, length, 100);
-		HAL_SPI_WriteFast(data, length, 100);
+		HAL_SPI_WriteFast(&hspi2, data, length, 100);
 	}
 
 	inline void SPI_Read(uint8_t *data, uint16_t length)
 	{
 		//HAL_SPI_Receive(&hspi2, data, length, 100);
-		HAL_SPI_ReadFast(data, length, 100);
+		HAL_SPI_ReadFast(&hspi2, data, length, 100);
 	}
 
 	inline void SPI_WriteRead(uint8_t *tx_data, uint8_t *rx_data, uint16_t length)
 	{
-		HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, length, 200);
+		//HAL_SPI_TransmitReceive(&hspi2, tx_data, rx_data, length, 200);
+		HAL_SPI_WriteReadFast(&hspi2, tx_data, rx_data, length, 200);
 	}
 	
 	
