@@ -1,11 +1,12 @@
 #include "main.h"
 #include <ConstantLibrary.h>
 #include <LoggerLibrary.h>
-#include <SPI.h>
-#include <About.h>
-#include <Leds.h>
-#include <CANLogic.h>
-#include <Buttons.h>
+#include "SPI.h"
+#include "About.h"
+#include "Leds.h"
+#include "CANLogic.h"
+#include "Buttons.h"
+#include "Out.h"
 
 ADC_HandleTypeDef hadc1;
 CAN_HandleTypeDef hcan;
@@ -35,6 +36,7 @@ int main(void)
 	CANLib::Setup();
 	ButtonsLeds::Setup();
 	SPI::Setup();
+	Out::Setup();
 	
 	Leds::obj.SetOn(Leds::LED_GREEN, 50, 1950);
 	
@@ -49,6 +51,7 @@ int main(void)
 		CANLib::Loop(current_time);
 		ButtonsLeds::Loop(current_time);
 		SPI::Loop(current_time);
+		Out::Loop(current_time);
 	}
 }
 
