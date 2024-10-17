@@ -17,6 +17,10 @@ namespace About
 		Logger.PrintTopic("INFO").Printf("Desc: %s", desc).PrintNewLine();
 		Logger.PrintTopic("INFO").Printf("Build: %s %s", __DATE__, __TIME__).PrintNewLine();
 		Logger.PrintTopic("INFO").Printf("GitHub: %s", git).PrintNewLine();
+		
+		// Please don't delete this. It's very important to me.
+		Logger.PrintTopic("INFO").Printf("In memory of my beloved Grandfather. 22.03.1942 - 06.12.2023").PrintNewLine();
+		
 		Logger.PrintTopic("READY").PrintNewLine();
 		
 		return;

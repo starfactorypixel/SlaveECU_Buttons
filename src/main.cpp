@@ -7,6 +7,7 @@
 #include "CANLogic.h"
 #include "Buttons.h"
 #include "Out.h"
+#include <Analog.h>
 
 ADC_HandleTypeDef hadc1;
 CAN_HandleTypeDef hcan;
@@ -19,6 +20,72 @@ static void MX_CAN_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_ADC1_Init(void);
+
+
+
+
+
+
+
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	CAN_RxHeaderTypeDef RxHeader = {0};
+	uint8_t RxData[8] = {0};
+	
+	if( HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK )
+	{
+		CANLib::can_manager.IncomingCANFrame(RxHeader.StdId, RxData, RxHeader.DLC);
+	}
+	
+	return;
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
+{
+	Leds::obj.SetOn(Leds::LED_RED, 100);
+	
+	DEBUG_LOG_TOPIC("CAN", "RX error event, code: 0x%08lX\n", HAL_CAN_GetError(hcan));
+	
+	return;
+}
+
+void HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length)
+{
+	CAN_TxHeaderTypeDef TxHeader = {0};
+	uint8_t TxData[8] = {0};
+	uint32_t TxMailbox = 0;
+	
+	TxHeader.StdId = id;
+	TxHeader.ExtId = 0;
+	TxHeader.RTR  = CAN_RTR_DATA;
+	TxHeader.IDE = CAN_ID_STD;
+	TxHeader.DLC = length;
+	TxHeader.TransmitGlobalTime = DISABLE;
+	memcpy(TxData, data, length);
+	
+	while( HAL_CAN_GetTxMailboxesFreeLevel(&hcan) == 0 )
+	{
+		Leds::obj.SetOn(Leds::LED_RED);
+	}
+	Leds::obj.SetOff(Leds::LED_RED);
+	
+	if( HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK )
+	{
+		Leds::obj.SetOn(Leds::LED_RED, 100);
+
+		DEBUG_LOG_TOPIC("CAN", "TX error event, code: 0x%08lX\n", HAL_CAN_GetError(&hcan));
+	}
+	
+	return;
+}
+
+
+
+
+
+
+
 
 int main(void)
 {
@@ -195,28 +262,6 @@ static void MX_GPIO_Init(void)
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
-
-/*
-	RCC->APB2ENR |= RCC_APB2ENR_AFIOEN; // Enable A.F. clock
-	//AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_JTAGDISABLE; // JTAG is disabled, SWD is enabled
-
-	AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_1;
-*/
-/*
-HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_RESET);
-
-GPIO_InitTypeDef GPIO_InitStruct = {0};
-GPIO_InitStruct.Pin = GPIO_PIN_15;
-GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;  // Настройка как выход в режиме Push-Pull
-GPIO_InitStruct.Pull = GPIO_NOPULL;
-GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-// Установить высокий уровень на PA15
-HAL_GPIO_WritePin(GPIOA, GPIO_PIN_15, GPIO_PIN_SET);
-*/
-
-
 }
 
 void Error_Handler(void)
