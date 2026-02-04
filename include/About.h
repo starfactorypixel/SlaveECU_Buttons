@@ -5,8 +5,8 @@ namespace About
 	static constexpr char name[] = "ButtonsECU";
 	static constexpr char desc[] = "Buttons control board for Pixel project";
 	static constexpr char board_type = Consts::BOARD_TYPE_BUTTONS1;		// 5 bits
-	static constexpr char board_ver = 2;		// 3 bits
-	static constexpr char soft_ver = 2;			// 6 bits
+	static constexpr char board_ver = 3;		// 3 bits
+	static constexpr char soft_ver = 3;			// 6 bits
 	static constexpr char can_ver = 1;			// 2 bits
 	static constexpr char git[] = "https://github.com/starfactorypixel/SlaveECU_Buttons";
 	
