@@ -1,8 +1,11 @@
 #pragma once
 #include <inttypes.h>
+#include <DrakePinD.hpp>
 
 namespace ButtonsLeds
 {
+
+	DrakePinD LedEn({GPIOA, GPIO_PIN_8}, DrakePin::Output, DrakePin::Low);
 	
 	// Вызывается при изменении состояния любой из кнопок
 	void OnButtonsUpdate(uint8_t device, uint8_t pin, bool state)
@@ -58,6 +61,9 @@ namespace ButtonsLeds
 	
 	inline void Setup()
 	{
+		LedEn.Init();
+		// Реализовать управление LedEn
+
 		SPI::hc165.SetCallback(OnButtonsUpdate);
 		CANLib::obj_buttonled_cn2.RegisterFunctionSet(OnButtonSet);
 		CANLib::obj_buttonled_cn3.RegisterFunctionSet(OnButtonSet);
