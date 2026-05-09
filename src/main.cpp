@@ -6,7 +6,6 @@
 #include "Leds.h"
 #include "CANLogic.h"
 #include "Buttons.h"
-#include "Out.h"
 #include <Analog.h>
 
 ADC_HandleTypeDef hadc1;
@@ -104,7 +103,6 @@ int main(void)
 	SPI::Setup();
 	CANLib::Setup();
 	ButtonsLeds::Setup();
-	Out::Setup();
 	
 	uint32_t current_time = HAL_GetTick();
 	while (1)
@@ -118,7 +116,6 @@ int main(void)
 		SPI::Loop(current_time);
 		CANLib::Loop(current_time);
 		ButtonsLeds::Loop(current_time);
-		Out::Loop(current_time);
 	}
 }
 

@@ -69,6 +69,8 @@ namespace ButtonsLeds
 		CANLib::obj_buttonled_cn3.RegisterFunctionSet(OnButtonSet);
 		CANLib::obj_buttonled_cn4.RegisterFunctionSet(OnButtonSet);
 		CANLib::obj_buttonled_cn5.RegisterFunctionSet(OnButtonSet);
+
+		LedEn.On();
 		
 		return;
 	}
