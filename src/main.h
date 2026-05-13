@@ -9,6 +9,8 @@ extern "C" {
 
 void Error_Handler(void);
 
+#define hDebugUart huart1
+
 #ifdef __cplusplus
 }
 #endif
