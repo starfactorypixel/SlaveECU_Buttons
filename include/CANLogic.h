@@ -1,29 +1,30 @@
 #pragma once
-#include <DrakePinD.hpp>
 #include <CANLibrary.h>
+#include "CanObj/CanBlockInfo.hpp"
+#include "CanObj/CanBlockCfg.hpp"
+#include "CanObj/CanButtonObj.hpp"
+#include "CANFunc.h"
+#include <DrakePinD.hpp>
 
 extern CAN_HandleTypeDef hcan;
-extern void HAL_CAN_Send(uint16_t id, uint8_t *data_raw, uint8_t length_raw);
+extern bool HAL_CAN_Send(can_object_id_t id, uint8_t *data, uint8_t length);
 
 namespace CANLib
 {
-	static constexpr uint8_t CFG_CANObjectsCount = 8;
-	static constexpr uint8_t CFG_CANFrameBufferSize = 16;
-	static constexpr uint16_t CFG_CANFirstId = 0x0220;
+	static constexpr uint8_t CFG_CANObjectsCount = 6;
+	static constexpr uint16_t CAN_BASE_ID = 0x0220;
 	
 	DrakePinD can_rs({GPIOA, GPIO_PIN_15}, DrakePin::OutputOpenDrain, DrakePin::High);
 	
-	CANManager<CFG_CANObjectsCount, CFG_CANFrameBufferSize> can_manager(&HAL_CAN_Send);
+	CANManager<CFG_CANObjectsCount> can_manager(&HAL_CAN_Send, &HAL_GetTick, &OnInterruptCtrl);
 	
-	CANObject<uint8_t, 7> obj_block_info(CFG_CANFirstId + 0);
-	CANObject<uint8_t, 7> obj_block_health(CFG_CANFirstId + 1);
-	CANObject<uint8_t, 7> obj_block_features(CFG_CANFirstId + 2);
-	CANObject<uint8_t, 7> obj_block_error(CFG_CANFirstId + 3);
-	
-	CANObject<uint8_t, 2> obj_buttonled_cn2(CFG_CANFirstId + 4);
-	CANObject<uint8_t, 2> obj_buttonled_cn3(CFG_CANFirstId + 5);
-	CANObject<uint8_t, 2> obj_buttonled_cn4(CFG_CANFirstId + 6);
-	CANObject<uint8_t, 2> obj_buttonled_cn5(CFG_CANFirstId + 7);
+	CanBlockInfo obj_block_info(CAN_BASE_ID+0, OnStaticInfoReq, OnDynamicInfoReq);
+	CanBlockCfg obj_block_cfg(CAN_BASE_ID+1, OnCfgSaveReset, block_cfg_table, block_cfg_table_count);
+
+	CanButtonObj obj_buttonled_1(CAN_BASE_ID+4, ButtonsLeds::OnButtonSet);
+	CanButtonObj obj_buttonled_2(CAN_BASE_ID+5, ButtonsLeds::OnButtonSet);
+	CanButtonObj obj_buttonled_3(CAN_BASE_ID+6, ButtonsLeds::OnButtonSet);
+	CanButtonObj obj_buttonled_4(CAN_BASE_ID+7, ButtonsLeds::OnButtonSet);
 	
 	
 	void CAN_Enable()
@@ -49,26 +50,14 @@ namespace CANLib
 	inline void Setup()
 	{
 		can_rs.Init();
+
+		can_manager.AddObject(obj_block_info);
+		can_manager.AddObject(obj_block_cfg);
 		
-		set_block_info_params(obj_block_info);
-		set_block_health_params(obj_block_health);
-		set_block_features_params(obj_block_features);
-		set_block_error_params(obj_block_error);
-		
-		can_manager.RegisterObject(obj_block_info);
-		can_manager.RegisterObject(obj_block_health);
-		can_manager.RegisterObject(obj_block_features);
-		can_manager.RegisterObject(obj_block_error);
-		
-		can_manager.RegisterObject(obj_buttonled_cn2);
-		can_manager.RegisterObject(obj_buttonled_cn3);
-		can_manager.RegisterObject(obj_buttonled_cn4);
-		can_manager.RegisterObject(obj_buttonled_cn5);
-		
-		
-		// Передача версий и типов в объект block_info
-		obj_block_info.SetValue(0, (About::board_type << 3 | About::board_ver), CAN_TIMER_TYPE_NORMAL);
-		obj_block_info.SetValue(1, (About::soft_ver << 2 | About::can_ver), CAN_TIMER_TYPE_NORMAL);
+		can_manager.AddObject(obj_buttonled_1);
+		can_manager.AddObject(obj_buttonled_2);
+		can_manager.AddObject(obj_buttonled_3);
+		can_manager.AddObject(obj_buttonled_4);
 
 		CAN_Enable();
 		
@@ -77,24 +66,15 @@ namespace CANLib
 	
 	inline void Loop(uint32_t &current_time)
 	{
-		can_manager.Process(current_time);
-
-		// Передача UpTime блока в объект block_info
-		static uint32_t iter1000 = 0;
-		if(current_time - iter1000 > 1000)
-		{
-			iter1000 = current_time;
-			
-			uint8_t *data = (uint8_t *)&current_time;
-			obj_block_info.SetValue(2, data[0], CAN_TIMER_TYPE_NORMAL);
-			obj_block_info.SetValue(3, data[1], CAN_TIMER_TYPE_NORMAL);
-			obj_block_info.SetValue(4, data[2], CAN_TIMER_TYPE_NORMAL);
-			obj_block_info.SetValue(5, data[3], CAN_TIMER_TYPE_NORMAL);
-		}
+		can_manager.Processing();
 		
-		// При выходе обновляем время
 		current_time = HAL_GetTick();
-		
 		return;
 	}
 }
+
+IBlockInfoSender &BlockInfoSender = CANLib::obj_block_info;
+IButtonObjSender &ButtonLed1 = CANLib::obj_buttonled_1;
+IButtonObjSender &ButtonLed2 = CANLib::obj_buttonled_2;
+IButtonObjSender &ButtonLed3 = CANLib::obj_buttonled_3;
+IButtonObjSender &ButtonLed4 = CANLib::obj_buttonled_4;

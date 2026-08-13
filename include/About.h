@@ -1,22 +1,28 @@
 #pragma once
 #include <ConstantLibrary.h>
+#include <CUtils_Crypto.h>
 
 namespace About
 {
 	static constexpr char name[] = "ButtonsECU";
 	static constexpr char desc[] = "Buttons control board for Pixel project";
-	static constexpr char board_type = Consts::BOARD_TYPE_BUTTONS;		// 5 bits
-	static constexpr char board_ver = 3;		// 3 bits
-	static constexpr char soft_ver = 3;			// 6 bits
-	static constexpr char can_ver = 1;			// 2 bits
+	static constexpr uint8_t board_type = Consts::BOARD_TYPE_BUTTONS;		// 5 bits
+	static constexpr uint8_t board_ver = 3;		// 3 bits
+	static constexpr uint8_t soft_ver = 3;			// 6 bits
+	static constexpr uint8_t can_ver = 1;			// 2 bits
 	static constexpr char git[] = "https://github.com/starfactorypixel/SlaveECU_Buttons";
-	
+	static uint8_t sn[8];
+	static Consts::features_io_t features = {};
+
 	inline void Setup()
 	{
+		GetSerialNumber64(sn);
+
 		Logger.PrintNewLine();
 		Logger.PrintTopic("INFO").Printf("%s, board:%d, soft:%d, can:%d", name, board_ver, soft_ver, can_ver).PrintNewLine();
 		Logger.PrintTopic("INFO").Printf("Desc: %s", desc).PrintNewLine();
 		Logger.PrintTopic("INFO").Printf("Build: %s %s", __DATE__, __TIME__).PrintNewLine();
+		Logger.PrintTopic("INFO").Printf("SN: %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X\n", sn[0], sn[1], sn[2], sn[3], sn[4], sn[5], sn[6], sn[7]);
 		Logger.PrintTopic("INFO").Printf("GitHub: %s", git).PrintNewLine();
 		
 		// Please don't delete this. It's very important to me.
