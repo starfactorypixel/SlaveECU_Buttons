@@ -11,7 +11,8 @@ namespace Analog
 	enum port_regular_t : uint8_t
 	{
 		PORT_REG_NONE,
-		PORT_REG_STMTEMP
+		PORT_REG_STMTEMP,
+		PORT_IN1, PORT_IN2, PORT_IN3, PORT_IN4
 	};
 	
 	struct regular_channel_t
@@ -25,7 +26,11 @@ namespace Analog
 	
 	static constexpr regular_channel_t channels[] = 
 	{
-		{GPIOA, 0, ADC_CHANNEL_TEMPSENSOR, ADC_REGULAR_RANK_1}
+		{GPIOA, 0, ADC_CHANNEL_TEMPSENSOR, ADC_REGULAR_RANK_1},
+		{GPIOA, GPIO_PIN_5, ADC_CHANNEL_5, ADC_REGULAR_RANK_2},
+		{GPIOA, GPIO_PIN_6, ADC_CHANNEL_6, ADC_REGULAR_RANK_3},
+		{GPIOA, GPIO_PIN_7, ADC_CHANNEL_7, ADC_REGULAR_RANK_4},
+		{GPIOB, GPIO_PIN_0, ADC_CHANNEL_8, ADC_REGULAR_RANK_5}
 	};
 	static constexpr uint8_t regular_channel_count = sizeofarray(channels);
 	volatile uint16_t regular_buf[regular_channel_count];
@@ -36,6 +41,13 @@ namespace Analog
 		if(--num >= regular_channel_count) return 0;
 
 		return regular_buf[num];
+	}
+	
+	const uint16_t *GetRegularValuePtr(/*port_regular_t*/ uint8_t num)
+	{
+		if(--num >= regular_channel_count) return nullptr;
+
+		return (uint16_t *)&regular_buf[num];
 	}
 	
 	static void RegularConfig()

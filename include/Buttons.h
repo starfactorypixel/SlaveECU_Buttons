@@ -6,7 +6,6 @@
 extern IButtonObjSender &ButtonLed1;
 extern IButtonObjSender &ButtonLed2;
 extern IButtonObjSender &ButtonLed3;
-extern IButtonObjSender &ButtonLed4;
 
 namespace ButtonsLeds
 {
@@ -38,11 +37,6 @@ namespace ButtonsLeds
 				ButtonLed3.EventOk(btn_number, btn_state);
 				break;
 			}
-			case 3:
-			{
-				ButtonLed4.EventOk(btn_number, btn_state);
-				break;
-			}
 		}
 		
 		return;
@@ -58,6 +52,8 @@ namespace ButtonsLeds
 	{
 		LedEn.Init();
 		// Реализовать управление LedEn
+
+		SPI::hc165.SetCallback(OnButtonsUpdate);
 
 		LedEn.On();
 		

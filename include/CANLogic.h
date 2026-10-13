@@ -3,6 +3,7 @@
 #include "CanObj/CanBlockInfo.hpp"
 #include "CanObj/CanBlockCfg.hpp"
 #include "CanObj/CanButtonObj.hpp"
+#include "CanObj/CanInfoParam.hpp"
 #include "CANFunc.h"
 #include <DrakePinD.hpp>
 
@@ -24,7 +25,10 @@ namespace CANLib
 	CanButtonObj obj_buttonled_1(CAN_BASE_ID+4, ButtonsLeds::OnButtonSet);
 	CanButtonObj obj_buttonled_2(CAN_BASE_ID+5, ButtonsLeds::OnButtonSet);
 	CanButtonObj obj_buttonled_3(CAN_BASE_ID+6, ButtonsLeds::OnButtonSet);
-	CanButtonObj obj_buttonled_4(CAN_BASE_ID+7, ButtonsLeds::OnButtonSet);
+	CanInfoParam<uint16_t> obj_input_1(CAN_BASE_ID+7, 125, Analog::GetRegularValuePtr(Analog::PORT_IN1));
+	CanInfoParam<uint16_t> obj_input_2(CAN_BASE_ID+8, 125, Analog::GetRegularValuePtr(Analog::PORT_IN2));
+	CanInfoParam<uint16_t> obj_input_3(CAN_BASE_ID+9, 125, Analog::GetRegularValuePtr(Analog::PORT_IN3));
+	CanInfoParam<uint16_t> obj_input_4(CAN_BASE_ID+10, 125, Analog::GetRegularValuePtr(Analog::PORT_IN4));
 	
 	
 	void CAN_Enable()
@@ -57,7 +61,10 @@ namespace CANLib
 		can_manager.AddObject(obj_buttonled_1);
 		can_manager.AddObject(obj_buttonled_2);
 		can_manager.AddObject(obj_buttonled_3);
-		can_manager.AddObject(obj_buttonled_4);
+		can_manager.AddObject(obj_input_1);
+		can_manager.AddObject(obj_input_2);
+		can_manager.AddObject(obj_input_3);
+		can_manager.AddObject(obj_input_4);
 
 		CAN_Enable();
 		
@@ -77,4 +84,3 @@ IBlockInfoSender &BlockInfoSender = CANLib::obj_block_info;
 IButtonObjSender &ButtonLed1 = CANLib::obj_buttonled_1;
 IButtonObjSender &ButtonLed2 = CANLib::obj_buttonled_2;
 IButtonObjSender &ButtonLed3 = CANLib::obj_buttonled_3;
-IButtonObjSender &ButtonLed4 = CANLib::obj_buttonled_4;
