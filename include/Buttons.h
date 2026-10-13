@@ -10,7 +10,7 @@ extern IButtonObjSender &ButtonLed3;
 namespace ButtonsLeds
 {
 
-	DrakePinD LedEn({GPIOA, GPIO_PIN_8}, DrakePin::Output, DrakePin::Low);
+	DrakePinD LedEn({GPIOB, GPIO_PIN_3}, DrakePin::Output, DrakePin::Low);
 	
 	// Вызывается при изменении состояния любой из кнопок
 	void OnButtonsUpdate(uint8_t device, uint8_t pin, bool state)
