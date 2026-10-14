@@ -13,6 +13,7 @@ namespace Analog
 	
 	DrakePinA adc_pin({&hadc2, GPIOB, GPIO_PIN_1, ADC_CHANNEL_9}, ADC_SAMPLETIME_7CYCLES_5);
 	DividerVoltageCalc VoltCalc(12, 3300, 69000, 10000);
+	DividerVoltageCalc VoltCalcInput(12, 3300, 47000, 68000);
 	
 	AnalogMux<0> mux( OnMuxRequest, OnMuxResponse
 	/*,

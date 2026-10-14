@@ -3,7 +3,7 @@
 #include "CanObj/CanBlockInfo.hpp"
 #include "CanObj/CanBlockCfg.hpp"
 #include "CanObj/CanButtonObj.hpp"
-#include "CanObj/CanInfoParam.hpp"
+#include "CanObj/CanInputObj.hpp"
 #include "CANFunc.h"
 #include <DrakePinD.hpp>
 
@@ -25,10 +25,10 @@ namespace CANLib
 	CanButtonObj obj_buttonled_1(CAN_BASE_ID+4, ButtonsLeds::OnButtonSet);
 	CanButtonObj obj_buttonled_2(CAN_BASE_ID+5, ButtonsLeds::OnButtonSet);
 	CanButtonObj obj_buttonled_3(CAN_BASE_ID+6, ButtonsLeds::OnButtonSet);
-	CanInfoParam<uint16_t> obj_input_1(CAN_BASE_ID+7, 125, Analog::GetRegularValuePtr(Analog::PORT_IN1));
-	CanInfoParam<uint16_t> obj_input_2(CAN_BASE_ID+8, 125, Analog::GetRegularValuePtr(Analog::PORT_IN2));
-	CanInfoParam<uint16_t> obj_input_3(CAN_BASE_ID+9, 125, Analog::GetRegularValuePtr(Analog::PORT_IN3));
-	CanInfoParam<uint16_t> obj_input_4(CAN_BASE_ID+10, 125, Analog::GetRegularValuePtr(Analog::PORT_IN4));
+	CanInputObj<uint16_t> obj_input_1(CAN_BASE_ID+7, 125, Analog::GetRegularValuePtr(Analog::PORT_IN1));
+	CanInputObj<uint16_t> obj_input_2(CAN_BASE_ID+8, 125, Analog::GetRegularValuePtr(Analog::PORT_IN2));
+	CanInputObj<uint16_t> obj_input_3(CAN_BASE_ID+9, 125, Analog::GetRegularValuePtr(Analog::PORT_IN3));
+	CanInputObj<uint16_t> obj_input_4(CAN_BASE_ID+10, 125, Analog::GetRegularValuePtr(Analog::PORT_IN4));
 	
 	
 	void CAN_Enable()
